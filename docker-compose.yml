@@ -1,0 +1,17 @@
+services:
+  postgres:
+    # pgvector image now so Phase 3 (memory) needs no image swap
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: assistant
+      POSTGRES_PASSWORD: assistant
+      POSTGRES_DB: assistant
+    ports:
+      # host 5433: a local Postgres already occupies 127.0.0.1:5432
+      - "5433:5432"
+    volumes:
+      - ./db/init:/docker-entrypoint-initdb.d
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

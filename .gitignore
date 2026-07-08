@@ -1,0 +1,10 @@
+.env
+keys/
+# local-only working docs — they describe personal infrastructure, never publish
+CLAUDE.md
+requirements.md
+__pycache__/
+.venv/
+*.egg-info/
+.pytest_cache/
+.DS_Store
