@@ -1,5 +1,6 @@
 .env
 keys/
+data/
 # local-only working docs — they describe personal infrastructure, never publish
 CLAUDE.md
 requirements.md

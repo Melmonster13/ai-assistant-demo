@@ -1,0 +1,20 @@
+# Tool servers: each entry is one stdio MCP server fronted by one verifying
+# wrapper process. The wrapper spawns the MCP server and is the only way to
+# reach it — the orchestrator never talks to an MCP server directly.
+#
+# tier "low"  = read-only: longer-lived multi-use token, no per-call confirmation
+# tier "high" = destructive: confirmation -> single-use argument-bound token
+# env lists which environment variables are passed through to the MCP server
+# subprocess (least privilege: it does not inherit the wrapper's full env).
+
+[servers.notes]
+port = 8101
+tier = "low"
+module = "mcpservers.notes"
+env = ["NOTES_DIR"]
+
+[servers.files]
+port = 8102
+tier = "high"
+module = "mcpservers.files"
+env = ["FILES_ROOT"]

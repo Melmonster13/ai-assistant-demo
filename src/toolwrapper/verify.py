@@ -31,12 +31,15 @@ def verify_token(
     *,
     public_key: str,
     conn: Any,
+    tier: str,
 ) -> dict[str, Any]:
     """Return the verified claims, or raise TokenRejected.
 
-    Checks: signature + expiry, tool binding, argument binding, then single-use —
-    the jti row is consumed atomically so a token can never authorize two
-    executions, even under races.
+    `tier` is this boundary's own configured tier — enforcement lives here, not
+    in the token: a high-tier wrapper demands argument binding and single-use
+    (jti consumed atomically, so one token can never authorize two executions)
+    no matter what the orchestrator minted. Low tier still requires a valid
+    signed, unexpired, tool-bound token, but allows multi-use within its TTL.
     """
     try:
         claims = jwt.decode(
@@ -50,17 +53,20 @@ def verify_token(
     except jwt.InvalidTokenError as exc:
         raise TokenRejected(f"invalid token: {exc}") from None
 
+    if claims.get("tier") != tier:
+        raise TokenRejected(f"token tier does not match this tool boundary (expected {tier})")
     if claims.get("tool_name") != tool_name:
         raise TokenRejected("token was minted for a different tool")
-    if claims.get("arguments_hash") != hash_arguments(arguments):
-        raise TokenRejected("arguments differ from what was confirmed")
 
-    with conn.cursor() as cur:
-        cur.execute(
-            "UPDATE jti SET used_at = now() WHERE jti = %s AND used_at IS NULL",
-            (claims["jti"],),
-        )
-        if cur.rowcount != 1:
-            raise TokenRejected("token unknown or already used")
+    if tier == "high":
+        if claims.get("arguments_hash") != hash_arguments(arguments):
+            raise TokenRejected("arguments differ from what was confirmed")
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE jti SET used_at = now() WHERE jti = %s AND used_at IS NULL",
+                (claims["jti"],),
+            )
+            if cur.rowcount != 1:
+                raise TokenRejected("token unknown or already used")
 
     return claims

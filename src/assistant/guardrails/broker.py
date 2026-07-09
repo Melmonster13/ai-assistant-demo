@@ -35,9 +35,17 @@ def mint_token(
     private_key: str,
     ttl_seconds: int,
     conn: Any,
+    tier: str = "high",
 ) -> MintedToken:
-    """Mint a single-use JWT authorizing exactly one call to `tool_name` with
-    exactly these arguments. Registers the jti; the wrapper consumes it on use."""
+    """Mint a JWT permission slip for `tool_name`, tiered by risk.
+
+    tier "high": single-use, argument-bound, minted only after confirmation —
+    authorizes exactly one call with exactly these arguments.
+    tier "low": longer-lived and multi-use within its TTL, bound to the tool but
+    not to arguments (read-only tools take varying arguments across calls).
+    The wrapper's own configured tier decides which checks it enforces; a claim
+    can't talk a high-tier boundary out of them.
+    """
     now = datetime.now(timezone.utc)
     expires = now + timedelta(seconds=ttl_seconds)
     token_id = str(uuid.uuid4())
@@ -45,10 +53,12 @@ def mint_token(
         "jti": token_id,
         "sub": user_id,
         "tool_name": tool_name,
-        "arguments_hash": hash_arguments(arguments),
+        "tier": tier,
         "iat": now,
         "exp": expires,
     }
+    if tier == "high":
+        claims["arguments_hash"] = hash_arguments(arguments)
     with conn.cursor() as cur:
         cur.execute(
             "INSERT INTO jti (jti, tool_name, issued_at, expires_at) VALUES (%s, %s, %s, %s)",
