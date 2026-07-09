@@ -14,6 +14,9 @@ from toolwrapper.bridge import McpBridge
 from toolwrapper.server import WrapperServer
 
 DB_URL = os.environ.get("DATABASE_URL", "postgresql://assistant:assistant@localhost:5433/assistant")
+MEMORY_DB_URL = os.environ.get(
+    "MEMORY_DATABASE_URL", "postgresql://assistant_app:assistant_app@localhost:5433/assistant"
+)
 
 FILES_ARGS = {"path": "a.txt", "content": "hi"}
 
@@ -125,6 +128,25 @@ def mint(keypair: Keypair, db_conn):
         )
 
     return _mint
+
+
+@pytest.fixture(scope="session")
+def memory_conn():
+    """Connection as the non-superuser role, so RLS on facts is enforced."""
+    try:
+        conn = psycopg.connect(MEMORY_DB_URL, autocommit=True, connect_timeout=2)
+    except psycopg.OperationalError:
+        pytest.skip("assistant_app role not reachable — apply db/init/03_memory.sql")
+    yield conn
+    conn.close()
+
+
+@pytest.fixture()
+def fact_store(memory_conn):
+    from assistant.memory.embeddings import HashingEmbedder
+    from assistant.memory.facts import FactStore
+
+    return FactStore(memory_conn, HashingEmbedder())
 
 
 @pytest.fixture()

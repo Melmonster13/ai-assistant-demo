@@ -1,7 +1,7 @@
 [project]
 name = "ai-assistant-demo"
 version = "0.1.0"
-description = "Personal Jarvis-style AI assistant — Phase 2: real tools via MCP"
+description = "Personal Jarvis-style AI assistant — Phase 3: memory"
 requires-python = ">=3.12"
 dependencies = [
     "anthropic",
@@ -10,7 +10,14 @@ dependencies = [
     "httpx",
     "python-dotenv",
     "mcp",
+    "pgvector",
+    "numpy",
 ]
+
+[project.optional-dependencies]
+# Local embedding backend (EMBEDDING_BACKEND=local). Heavy (pulls torch); the
+# zero-dependency hashing backend covers tests and offline/light setups.
+local-embeddings = ["sentence-transformers"]
 
 [dependency-groups]
 dev = ["pytest"]

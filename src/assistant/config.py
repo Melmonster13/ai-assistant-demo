@@ -17,11 +17,16 @@ class ToolServer:
 class Config:
     anthropic_api_key: str
     database_url: str
+    memory_database_url: str
     jwt_private_key_path: Path
     jwt_ttl_seconds: int
     jwt_low_tier_ttl_seconds: int
     user_id: str
     tool_servers: tuple[ToolServer, ...]
+    persona_dir: Path
+    embedding_backend: str
+    recall_k: int
+    recall_min_similarity: float
 
 
 def _load_tool_servers() -> tuple[ToolServer, ...]:
@@ -40,9 +45,15 @@ def load_config() -> Config:
     return Config(
         anthropic_api_key=os.environ["ANTHROPIC_API_KEY"],
         database_url=os.environ["DATABASE_URL"],
+        # non-superuser role so RLS on facts actually enforces
+        memory_database_url=os.environ["MEMORY_DATABASE_URL"],
         jwt_private_key_path=Path(os.environ["JWT_PRIVATE_KEY_PATH"]),
         jwt_ttl_seconds=int(os.environ.get("JWT_TTL_SECONDS", "30")),
         jwt_low_tier_ttl_seconds=int(os.environ.get("JWT_LOW_TIER_TTL_SECONDS", "900")),
         user_id=os.environ.get("USER_ID", "user"),
         tool_servers=_load_tool_servers(),
+        persona_dir=Path(os.environ.get("PERSONA_DIR", "data/persona")),
+        embedding_backend=os.environ.get("EMBEDDING_BACKEND", "local"),
+        recall_k=int(os.environ.get("RECALL_K", "5")),
+        recall_min_similarity=float(os.environ.get("RECALL_MIN_SIMILARITY", "0.25")),
     )

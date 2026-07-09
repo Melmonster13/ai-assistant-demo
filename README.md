@@ -2,15 +2,15 @@
 
 A personal, Jarvis-style AI assistant — voice and an interactive UI as equal peers, built security-first: the permission gate, token broker, and audit log exist before anything they could fail to protect.
 
-## Status: Phase 2 of 6 (real tools via MCP) — done
+## Status: Phase 3 of 6 (memory) — done
 
-Real MCP servers behind the verifying wrapper: a read-only `notes` server on the low-risk tier and a destructive `files` server on the high tier. Destructive calls provably won't execute without a confirmed, single-use, argument-bound, unexpired token; tool definitions are fingerprinted on first use and re-verified for drift on every connection.
+Two-tier memory: a pgvector fact store keyed by `user_id` with Postgres row-level security actually enforced (memory connects as a non-superuser role, so a query can only ever touch the current user's rows), and a persona/profile loaded from a markdown folder into the system prompt. Relevant facts are auto-recalled into context each turn; the model saves new ones with a `remember_fact` tool. Memory is a direct integration, not an MCP tool.
 
 | Phase | Builds | Status |
 |---|---|---|
 | 1 — Security spine | Orchestrator loop, model adapter, JWT-verified fake tool, CLI confirmation, audit log | ✅ |
 | 2 — Real tools via MCP | MCP client, tool fingerprint registry (TOFU + drift detection), tiered tokens | ✅ |
-| 3 — Memory | pgvector fact store, persona loader | — |
+| 3 — Memory | pgvector fact store (RLS), persona loader, embedding adapter | ✅ |
 | 4 — UI | Web chat, confirmation buttons, memory browsers | — |
 | 5 — Voice | Wake word → STT → orchestrator → TTS | — |
 | 6 — Deploy | Split to target topology; dev is single-machine by design | — |
@@ -25,16 +25,27 @@ Three import-isolated packages form a real trust boundary:
 
 Tool definitions are trusted on first use: each tool's name + description + input schema is fingerprinted and requires one-time approval. On every reconnect the fingerprint is re-checked; a changed definition (the MCP "rug pull") is logged old-vs-new, requires explicit re-approval, and stays confirmation-forced for the session even if re-approved.
 
+## Memory
+
+Memory is a direct integration (`src/assistant/memory/`), not an MCP tool — it's internal and has no separate trust boundary. Two tiers:
+
+- **Fact-recall** — a Postgres + pgvector store keyed by `user_id`. Row-level security is enforced, not just declared: memory connects as a dedicated non-superuser role and each operation binds `app.current_user_id`, so the RLS policy limits every query to that user's rows in the database itself, even if the SQL omits a `WHERE`. Relevant facts are auto-recalled by semantic similarity each turn and injected into the system prompt; the model persists new facts with a `remember_fact` tool (an internal low-risk write — audited, but no confirmation or token).
+- **Persona/profile** — hand-authored markdown in a folder (the dev stand-in for a synced vault), concatenated into the system prompt to shape tone.
+
+Embeddings are an adapter chosen by config: `local` uses a small local sentence-transformers model (private, no API key; `uv sync --extra local-embeddings`), `hashing` is a zero-dependency fallback. Both produce 384-dim vectors, so the schema is backend-independent.
+
 ## Setup
 
 Requires [uv](https://docs.astral.sh/uv/) and Docker.
 
 ```sh
-uv sync
+uv sync                                  # add --extra local-embeddings for the local embedding model
 uv run python scripts/generate_keys.py   # dev Ed25519 keypair → keys/ (gitignored)
 docker compose up -d                     # Postgres on host port 5433, schema auto-applied
 cp .env.example .env                     # then add your ANTHROPIC_API_KEY
 ```
+
+The default `EMBEDDING_BACKEND=local` needs the `local-embeddings` extra; set it to `hashing` to run without extra dependencies.
 
 ## Run
 
@@ -52,4 +63,4 @@ First run prompts one-time approval per discovered tool (TOFU). Destructive tool
 uv run pytest
 ```
 
-[tests/test_bypass.py](tests/test_bypass.py) proves the destructive tool won't run without a confirmed, single-use, unexpired token — seven bypass attempts against a live wrapper fronting the real MCP server (no token, forged signature, expired, replayed `jti`, tampered arguments, wrong-tool token, low-tier token at the high boundary), each asserting nothing reached the filesystem. [tests/test_registry.py](tests/test_registry.py) covers TOFU and rug-pull drift; [tests/test_tiering.py](tests/test_tiering.py) covers both tiers' token rules; [tests/test_orchestrator.py](tests/test_orchestrator.py) runs the loop end-to-end. Skips if Postgres isn't running.
+[tests/test_bypass.py](tests/test_bypass.py) proves the destructive tool won't run without a confirmed, single-use, unexpired token — seven bypass attempts against a live wrapper fronting the real MCP server (no token, forged signature, expired, replayed `jti`, tampered arguments, wrong-tool token, low-tier token at the high boundary), each asserting nothing reached the filesystem. [tests/test_registry.py](tests/test_registry.py) covers TOFU and rug-pull drift; [tests/test_tiering.py](tests/test_tiering.py) covers both tiers' token rules; [tests/test_orchestrator.py](tests/test_orchestrator.py) runs the loop end-to-end. [tests/test_memory.py](tests/test_memory.py) covers semantic recall and RLS user isolation (including that a raw un-filtered `SELECT` still can't cross users); [tests/test_memory_orchestrator.py](tests/test_memory_orchestrator.py) covers persona injection, auto-recall, and the `remember_fact` path. Skips if Postgres isn't running.
