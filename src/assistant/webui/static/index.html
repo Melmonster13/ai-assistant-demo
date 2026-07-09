@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>assistant</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <span class="dot" id="status-dot" title="idle"></span>
+    <h1>assistant</h1>
+    <span id="status-tools" class="muted"></span>
+  </header>
+
+  <main>
+    <section id="chat-pane">
+      <div id="messages"></div>
+      <div id="decisions"></div>
+      <form id="chat-form" autocomplete="off">
+        <input id="chat-input" type="text" placeholder="Message the assistant…" autofocus>
+        <button type="submit" id="send-btn">Send</button>
+      </form>
+    </section>
+
+    <aside id="side-pane">
+      <nav>
+        <button class="tab active" data-tab="memory">Memory</button>
+        <button class="tab" data-tab="persona">Persona</button>
+      </nav>
+      <div id="tab-memory" class="tab-body">
+        <input id="memory-search" type="text" placeholder="Search memory (semantic)…">
+        <ul id="memory-list"></ul>
+        <p class="muted small">Read-only. Facts are saved in conversation.</p>
+      </div>
+      <div id="tab-persona" class="tab-body hidden">
+        <pre id="persona-text" class="muted">loading…</pre>
+        <p class="muted small">Read-only. Persona is authored in the vault.</p>
+      </div>
+    </aside>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

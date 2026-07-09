@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "webui-preview",
+      "runtimeExecutable": "uv",
+      "runtimeArgs": ["run", "python", "scripts/preview_ui.py"],
+      "port": 8090
+    }
+  ]
+}

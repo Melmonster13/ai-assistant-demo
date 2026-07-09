@@ -24,6 +24,7 @@ dev = ["pytest"]
 
 [project.scripts]
 assistant = "assistant.cli:main"
+assistant-web = "assistant.webui.server:main"
 tool-wrapper = "toolwrapper.server:main"
 
 [build-system]

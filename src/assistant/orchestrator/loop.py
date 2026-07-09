@@ -95,6 +95,10 @@ class Orchestrator:
             self._internal["remember_fact"] = self._remember_fact
             self._tools.append(REMEMBER_TOOL)
 
+    @property
+    def tool_names(self) -> list[str]:
+        return [t["name"] for t in self._tools]
+
     def startup(self) -> list[str]:
         """Discover tools from each wrapper and run them through the fingerprint
         registry (TOFU + drift). Only cleared tools are offered to the model.

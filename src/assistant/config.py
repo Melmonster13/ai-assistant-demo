@@ -27,6 +27,7 @@ class Config:
     embedding_backend: str
     recall_k: int
     recall_min_similarity: float
+    ui_port: int
 
 
 def _load_tool_servers() -> tuple[ToolServer, ...]:
@@ -56,4 +57,5 @@ def load_config() -> Config:
         embedding_backend=os.environ.get("EMBEDDING_BACKEND", "local"),
         recall_k=int(os.environ.get("RECALL_K", "5")),
         recall_min_similarity=float(os.environ.get("RECALL_MIN_SIMILARITY", "0.25")),
+        ui_port=int(os.environ.get("UI_PORT", "8080")),
     )

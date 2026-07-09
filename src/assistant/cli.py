@@ -9,20 +9,7 @@ from assistant.memory.facts import FactStore
 from assistant.memory.persona import PersonaLoader
 from assistant.model.claude import ClaudeAdapter
 from assistant.orchestrator.loop import Orchestrator
-
-BASE_INSTRUCTIONS = (
-    "You are a personal assistant. Use the available tools when the request "
-    "calls for them. Destructive actions are confirmed with the user before "
-    "they execute; if a tool call is denied or rejected, accept that and do "
-    "not retry it unasked. When the user shares something worth remembering, "
-    "use remember_fact."
-)
-
-
-def _system_prompt(persona: str) -> str:
-    if not persona:
-        return BASE_INSTRUCTIONS
-    return f"{BASE_INSTRUCTIONS}\n\nWho you are and who you're talking to:\n{persona}"
+from assistant.prompt import system_prompt
 
 
 def main() -> None:
@@ -41,7 +28,7 @@ def main() -> None:
         ttl_seconds=cfg.jwt_ttl_seconds,
         low_ttl_seconds=cfg.jwt_low_tier_ttl_seconds,
         user_id=cfg.user_id,
-        system_prompt=_system_prompt(persona),
+        system_prompt=system_prompt(persona),
         fact_store=fact_store,
         recall_k=cfg.recall_k,
         recall_min_similarity=cfg.recall_min_similarity,

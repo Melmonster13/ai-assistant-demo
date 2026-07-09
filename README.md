@@ -2,16 +2,16 @@
 
 A personal, Jarvis-style AI assistant — voice and an interactive UI as equal peers, built security-first: the permission gate, token broker, and audit log exist before anything they could fail to protect.
 
-## Status: Phase 3 of 6 (memory) — done
+## Status: Phase 4 of 6 (web UI) — done
 
-Two-tier memory: a pgvector fact store keyed by `user_id` with Postgres row-level security actually enforced (memory connects as a non-superuser role, so a query can only ever touch the current user's rows), and a persona/profile loaded from a markdown folder into the system prompt. Relevant facts are auto-recalled into context each turn; the model saves new ones with a `remember_fact` tool. Memory is a direct integration, not an MCP tool.
+A plain HTML/JS web client (no framework, no build step, no CDN) over the same orchestrator entry point the CLI uses: chat, confirmation buttons replacing the CLI y/n, and read-only persona and memory browsers. Confirmation became asynchronous without moving the gate — the in-flight turn blocks on a decision queue the browser polls and answers, and unanswered decisions time out to deny.
 
 | Phase | Builds | Status |
 |---|---|---|
 | 1 — Security spine | Orchestrator loop, model adapter, JWT-verified fake tool, CLI confirmation, audit log | ✅ |
 | 2 — Real tools via MCP | MCP client, tool fingerprint registry (TOFU + drift detection), tiered tokens | ✅ |
 | 3 — Memory | pgvector fact store (RLS), persona loader, embedding adapter | ✅ |
-| 4 — UI | Web chat, confirmation buttons, memory browsers | — |
+| 4 — UI | Web chat, confirmation cards, read-only persona/memory browsers | ✅ |
 | 5 — Voice | Wake word → STT → orchestrator → TTS | — |
 | 6 — Deploy | Split to target topology; dev is single-machine by design | — |
 
@@ -52,10 +52,13 @@ The default `EMBEDDING_BACKEND=local` needs the `local-embeddings` extra; set it
 ```sh
 uv run tool-wrapper notes   # terminal 1: read-only notes server (low tier)
 uv run tool-wrapper files   # terminal 2: destructive files server (high tier)
-uv run assistant            # terminal 3: chat; try "read my notes, then save a summary file"
+uv run assistant            # terminal 3: CLI chat — or:
+uv run assistant-web        # web UI on http://127.0.0.1:8080 (localhost only)
 ```
 
-First run prompts one-time approval per discovered tool (TOFU). Destructive tool calls prompt `Allow? [y/N]` before a token is minted; reads don't.
+First run prompts one-time approval per discovered tool (TOFU). Destructive tool calls require confirmation before a token is minted — `Allow? [y/N]` in the CLI, an Allow/Deny card in the web UI; reads don't. In the web UI, unanswered confirmations time out to deny.
+
+To try the web UI without an API key: `uv run python scripts/preview_ui.py` serves it on port 8090 with a scripted model and real wrappers/memory.
 
 ## Tests
 
@@ -63,4 +66,4 @@ First run prompts one-time approval per discovered tool (TOFU). Destructive tool
 uv run pytest
 ```
 
-[tests/test_bypass.py](tests/test_bypass.py) proves the destructive tool won't run without a confirmed, single-use, unexpired token — seven bypass attempts against a live wrapper fronting the real MCP server (no token, forged signature, expired, replayed `jti`, tampered arguments, wrong-tool token, low-tier token at the high boundary), each asserting nothing reached the filesystem. [tests/test_registry.py](tests/test_registry.py) covers TOFU and rug-pull drift; [tests/test_tiering.py](tests/test_tiering.py) covers both tiers' token rules; [tests/test_orchestrator.py](tests/test_orchestrator.py) runs the loop end-to-end. [tests/test_memory.py](tests/test_memory.py) covers semantic recall and RLS user isolation (including that a raw un-filtered `SELECT` still can't cross users); [tests/test_memory_orchestrator.py](tests/test_memory_orchestrator.py) covers persona injection, auto-recall, and the `remember_fact` path. Skips if Postgres isn't running.
+[tests/test_bypass.py](tests/test_bypass.py) proves the destructive tool won't run without a confirmed, single-use, unexpired token — seven bypass attempts against a live wrapper fronting the real MCP server (no token, forged signature, expired, replayed `jti`, tampered arguments, wrong-tool token, low-tier token at the high boundary), each asserting nothing reached the filesystem. [tests/test_registry.py](tests/test_registry.py) covers TOFU and rug-pull drift; [tests/test_tiering.py](tests/test_tiering.py) covers both tiers' token rules; [tests/test_orchestrator.py](tests/test_orchestrator.py) runs the loop end-to-end. [tests/test_memory.py](tests/test_memory.py) covers semantic recall and RLS user isolation (including that a raw un-filtered `SELECT` still can't cross users); [tests/test_memory_orchestrator.py](tests/test_memory_orchestrator.py) covers persona injection, auto-recall, and the `remember_fact` path. [tests/test_webui.py](tests/test_webui.py) covers the decision queue's fail-closed semantics and the allow/deny confirmation flows end-to-end over HTTP. Skips if Postgres isn't running.

@@ -40,6 +40,17 @@ class FactStore:
             )
             return cur.fetchone()[0]
 
+    def browse(self, user_id: str, *, limit: int = 50) -> list[dict[str, Any]]:
+        """Most recent facts for the read-only memory browser (RLS-scoped)."""
+        with self._conn.cursor() as cur:
+            self._scope(cur, user_id)
+            cur.execute(
+                "SELECT content, created_at FROM facts ORDER BY created_at DESC, id DESC LIMIT %s",
+                (limit,),
+            )
+            rows = cur.fetchall()
+        return [{"content": content, "created_at": created.isoformat()} for content, created in rows]
+
     def recall(self, user_id: str, query: str, *, k: int = 5, min_similarity: float = 0.0) -> list[Fact]:
         embedding = self._embedder.embed(query)
         with self._conn.cursor() as cur:
