@@ -2,9 +2,9 @@
 
 A personal, Jarvis-style AI assistant — voice and an interactive UI as equal peers, built security-first: the permission gate, token broker, and audit log exist before anything they could fail to protect.
 
-## Status: Phase 4 of 6 (web UI) — done
+## Status: Phase 5 of 6 (voice) — done
 
-A plain HTML/JS web client (no framework, no build step, no CDN) over the same orchestrator entry point the CLI uses: chat, confirmation buttons replacing the CLI y/n, and read-only persona and memory browsers. Confirmation became asynchronous without moving the gate — the in-flight turn blocks on a decision queue the browser polls and answers, and unanswered decisions time out to deny.
+Voice in and out, fully local audio: wake word ("hey jarvis" via openWakeWord) → faster-whisper STT → the same web API the browser uses → Piper (or macOS `say`) TTS back. A fourth client of an already-working system, not a new subsystem — the voice client needs nothing but the assistant's URL, so it can run on a different machine than the orchestrator.
 
 | Phase | Builds | Status |
 |---|---|---|
@@ -12,7 +12,7 @@ A plain HTML/JS web client (no framework, no build step, no CDN) over the same o
 | 2 — Real tools via MCP | MCP client, tool fingerprint registry (TOFU + drift detection), tiered tokens | ✅ |
 | 3 — Memory | pgvector fact store (RLS), persona loader, embedding adapter | ✅ |
 | 4 — UI | Web chat, confirmation cards, read-only persona/memory browsers | ✅ |
-| 5 — Voice | Wake word → STT → orchestrator → TTS | — |
+| 5 — Voice | Wake word → local STT → orchestrator → local TTS, spoken confirmations | ✅ |
 | 6 — Deploy | Split to target topology; dev is single-machine by design | — |
 
 ## How the gate works
@@ -33,6 +33,19 @@ Memory is a direct integration (`src/assistant/memory/`), not an MCP tool — it
 - **Persona/profile** — hand-authored markdown in a folder (the dev stand-in for a synced vault), concatenated into the system prompt to shape tone.
 
 Embeddings are an adapter chosen by config: `local` uses a small local sentence-transformers model (private, no API key; `uv sync --extra local-embeddings`), `hashing` is a zero-dependency fallback. Both produce 384-dim vectors, so the schema is backend-independent.
+
+## Voice
+
+`src/voiceclient` is import-isolated from everything else and reaches the orchestrator only over HTTP — the same `/api/chat` the browser uses. All audio stays on-device: openWakeWord scores the wake word locally, faster-whisper transcribes locally, Piper synthesizes locally (`say` is the zero-setup macOS fallback). Backends are config, not architecture — each is a swappable adapter.
+
+Confirmation is modality-agnostic by construction: a destructive tool call lands on the shared decision queue, where browser buttons *and* the voice client poll the same pending list — the voice client reads the request aloud and listens for yes/no, and whichever surface answers first wins. Ambiguous spoken answers are re-asked once, then denied; unanswered requests time out to deny. The gate always fails closed.
+
+```sh
+uv sync --extra voice
+uv run assistant-web        # the voice client talks to this
+uv run assistant-voice      # dev defaults: push-to-talk + `say`
+# target stack: WAKE_BACKEND=openwakeword, TTS_BACKEND=piper (see .env.example)
+```
 
 ## Setup
 
@@ -66,4 +79,4 @@ To try the web UI without an API key: `uv run python scripts/preview_ui.py` serv
 uv run pytest
 ```
 
-[tests/test_bypass.py](tests/test_bypass.py) proves the destructive tool won't run without a confirmed, single-use, unexpired token — seven bypass attempts against a live wrapper fronting the real MCP server (no token, forged signature, expired, replayed `jti`, tampered arguments, wrong-tool token, low-tier token at the high boundary), each asserting nothing reached the filesystem. [tests/test_registry.py](tests/test_registry.py) covers TOFU and rug-pull drift; [tests/test_tiering.py](tests/test_tiering.py) covers both tiers' token rules; [tests/test_orchestrator.py](tests/test_orchestrator.py) runs the loop end-to-end. [tests/test_memory.py](tests/test_memory.py) covers semantic recall and RLS user isolation (including that a raw un-filtered `SELECT` still can't cross users); [tests/test_memory_orchestrator.py](tests/test_memory_orchestrator.py) covers persona injection, auto-recall, and the `remember_fact` path. [tests/test_webui.py](tests/test_webui.py) covers the decision queue's fail-closed semantics and the allow/deny confirmation flows end-to-end over HTTP. Skips if Postgres isn't running.
+[tests/test_bypass.py](tests/test_bypass.py) proves the destructive tool won't run without a confirmed, single-use, unexpired token — seven bypass attempts against a live wrapper fronting the real MCP server (no token, forged signature, expired, replayed `jti`, tampered arguments, wrong-tool token, low-tier token at the high boundary), each asserting nothing reached the filesystem. [tests/test_registry.py](tests/test_registry.py) covers TOFU and rug-pull drift; [tests/test_tiering.py](tests/test_tiering.py) covers both tiers' token rules; [tests/test_orchestrator.py](tests/test_orchestrator.py) runs the loop end-to-end. [tests/test_memory.py](tests/test_memory.py) covers semantic recall and RLS user isolation (including that a raw un-filtered `SELECT` still can't cross users); [tests/test_memory_orchestrator.py](tests/test_memory_orchestrator.py) covers persona injection, auto-recall, and the `remember_fact` path. [tests/test_webui.py](tests/test_webui.py) covers the decision queue's fail-closed semantics and the allow/deny confirmation flows end-to-end over HTTP. [tests/test_voice.py](tests/test_voice.py) drives the voice loop against the same gate with scripted audio backends — a spoken yes executes, a spoken no doesn't, and ambiguous answers fail closed. Skips if Postgres isn't running.

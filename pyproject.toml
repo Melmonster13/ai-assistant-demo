@@ -18,6 +18,11 @@ dependencies = [
 # Local embedding backend (EMBEDDING_BACKEND=local). Heavy (pulls torch); the
 # zero-dependency hashing backend covers tests and offline/light setups.
 local-embeddings = ["sentence-transformers"]
+# Voice client (all local: mic capture, wake word, STT, TTS). Only needed on
+# the machine running assistant-voice; scripted tests don't require it.
+# onnxruntime 1.27.0 silently mis-executes the openwakeword models (all scores
+# zero — verified against openwakeword's own reference clip); 1.24–1.26 are fine.
+voice = ["sounddevice", "faster-whisper", "openwakeword>=0.6", "piper-tts", "onnxruntime<1.27"]
 
 [dependency-groups]
 dev = ["pytest"]
@@ -25,11 +30,18 @@ dev = ["pytest"]
 [project.scripts]
 assistant = "assistant.cli:main"
 assistant-web = "assistant.webui.server:main"
+assistant-voice = "voiceclient.loop:main"
 tool-wrapper = "toolwrapper.server:main"
+
+[tool.uv]
+# openwakeword pins tflite-runtime on Linux, which ships no py3.14 wheels and
+# would force the cross-platform lock back to openwakeword 0.4. We use its ONNX
+# inference path, where tflite is an optional accelerator — drop it from the lock.
+override-dependencies = ["tflite-runtime ; python_version < '3'"]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/assistant", "src/toolwrapper", "src/mcpservers"]
+packages = ["src/assistant", "src/toolwrapper", "src/mcpservers", "src/voiceclient"]
