@@ -2,6 +2,7 @@
 scripted model (no API key). 'write <x>' triggers the destructive flow,
 'remember <x>' saves a fact, anything else echoes."""
 
+import os
 import sys
 import threading
 from pathlib import Path
@@ -11,7 +12,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from assistant.config import ToolServer
-from assistant.memory.embeddings import HashingEmbedder
+from assistant.memory.embeddings import make_embedder
 from assistant.memory.facts import FactStore
 from assistant.memory.persona import PersonaLoader
 from assistant.model.base import ModelResponse, ToolCall
@@ -72,7 +73,8 @@ notes = wrapper("low", "mcpservers.notes", {"NOTES_DIR": str(ROOT / "data/notes"
 files = wrapper("high", "mcpservers.files", {"FILES_ROOT": str(ROOT / "data/sandbox")})
 
 decisions = DecisionQueue()
-embedder = HashingEmbedder()
+backend = os.environ.get("EMBEDDING_BACKEND", "hashing")
+embedder = make_embedder(backend)
 fact_store = FactStore(psycopg.connect(MEM, autocommit=True), embedder)
 browse_store = FactStore(psycopg.connect(MEM, autocommit=True), embedder)
 persona = PersonaLoader(ROOT / "data/persona").load()
@@ -95,5 +97,5 @@ orchestrator = Orchestrator(
     approve=decisions.approve,
 )
 ui = UIServer(8090, orchestrator=orchestrator, decisions=decisions, persona_text=persona, browse_store=browse_store, user_id="preview")
-print(f"preview ui on http://127.0.0.1:{ui.port}", flush=True)
+print(f"preview ui on http://127.0.0.1:{ui.port} (embedding backend: {backend})", flush=True)
 ui.serve_forever()
