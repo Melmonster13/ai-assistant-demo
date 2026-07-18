@@ -80,3 +80,9 @@ uv run pytest
 ```
 
 [tests/test_bypass.py](tests/test_bypass.py) proves the destructive tool won't run without a confirmed, single-use, unexpired token — seven bypass attempts against a live wrapper fronting the real MCP server (no token, forged signature, expired, replayed `jti`, tampered arguments, wrong-tool token, low-tier token at the high boundary), each asserting nothing reached the filesystem. [tests/test_registry.py](tests/test_registry.py) covers TOFU and rug-pull drift; [tests/test_tiering.py](tests/test_tiering.py) covers both tiers' token rules; [tests/test_orchestrator.py](tests/test_orchestrator.py) runs the loop end-to-end. [tests/test_memory.py](tests/test_memory.py) covers semantic recall and RLS user isolation (including that a raw un-filtered `SELECT` still can't cross users); [tests/test_memory_orchestrator.py](tests/test_memory_orchestrator.py) covers persona injection, auto-recall, and the `remember_fact` path. [tests/test_webui.py](tests/test_webui.py) covers the decision queue's fail-closed semantics and the allow/deny confirmation flows end-to-end over HTTP. [tests/test_voice.py](tests/test_voice.py) drives the voice loop against the same gate with scripted audio backends — a spoken yes executes, a spoken no doesn't, and ambiguous answers fail closed. Skips if Postgres isn't running.
+
+## Acknowledgements
+
+Built with assistance from Claude Code (Anthropic) for code generation and
+project scaffolding. All architecture, security design, and threat-model
+decisions are my own.
