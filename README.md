@@ -2,6 +2,8 @@
 
 A personal, Jarvis-style AI assistant — voice and an interactive UI as equal peers, built security-first: the permission gate, token broker, and audit log exist before anything they could fail to protect.
 
+![Architecture: three clients terminate at one orchestrator, which mints Ed25519 permission slips and reaches each tool only through that tool's verifying proxy inside a trust boundary.](docs/architecture.svg)
+
 ## Status: Phase 5 of 6 (voice) — done
 
 Voice in and out, fully local audio: wake word ("hey jarvis" via openWakeWord) → faster-whisper STT → the same web API the browser uses → Piper (or macOS `say`) TTS back. A fourth client of an already-working system, not a new subsystem — the voice client needs nothing but the assistant's URL, so it can run on a different machine than the orchestrator.

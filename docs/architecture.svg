@@ -1,0 +1,168 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 800" width="940" height="800" role="img" aria-label="Architecture: clients terminate at a single orchestrator, which mints Ed25519 permission slips and reaches tools only through per-tool verifying proxies inside a trust boundary.">
+  <style>
+    :root {
+      --bg: #ffffff;
+      --ink: #0f172a;
+      --muted: #5b6473;
+      --line: #94a3b8;
+      --card: #ffffff;
+      --edge: #cbd5e1;
+      --panel: #f1f5f9;
+      --accent: #1d4ed8;
+      --accent-soft: #eff6ff;
+      --high: #b45309;
+      --high-soft: #fffbeb;
+      --low: #0f766e;
+      --low-soft: #f0fdfa;
+      --bound: #be123c;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0d1117;
+        --ink: #e6edf3;
+        --muted: #9aa7b6;
+        --line: #6b7787;
+        --card: #161b22;
+        --edge: #30363d;
+        --panel: #11161d;
+        --accent: #6ea8fe;
+        --accent-soft: #16202f;
+        --high: #e0a458;
+        --high-soft: #211a10;
+        --low: #4dd4ac;
+        --low-soft: #10201c;
+        --bound: #f47d92;
+      }
+    }
+    .bg { fill: var(--bg); }
+    text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .t { font-size: 14.5px; font-weight: 650; fill: var(--ink); }
+    .s { font-size: 11.5px; fill: var(--muted); }
+    .lab { font-size: 11px; fill: var(--muted); }
+    .cap { font-size: 10.5px; font-weight: 700; letter-spacing: 0.09em; }
+    .card { fill: var(--card); stroke: var(--edge); stroke-width: 1.25; }
+    .panel { fill: var(--panel); stroke: var(--edge); stroke-width: 1.25; }
+    .orc { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.75; }
+    .hi { fill: var(--high-soft); stroke: var(--high); stroke-width: 1.5; }
+    .lo { fill: var(--low-soft); stroke: var(--low); stroke-width: 1.5; }
+    .conn { stroke: var(--line); stroke-width: 1.6; fill: none; }
+    .conn-d { stroke: var(--line); stroke-width: 1.4; fill: none; stroke-dasharray: 4 3; }
+    .bound-box { fill: none; stroke: var(--bound); stroke-width: 1.6; stroke-dasharray: 7 5; }
+    .foot { font-size: 12px; fill: var(--muted); }
+    .foot-t { font-size: 12.5px; font-weight: 700; fill: var(--ink); }
+    .num { font-size: 12.5px; font-weight: 700; fill: var(--accent); }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--line)"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="940" height="800"/>
+
+  <!-- ============ clients ============ -->
+  <rect class="card" x="32"  y="40" width="252" height="72" rx="8"/>
+  <text class="t" x="158" y="70" text-anchor="middle">Voice client</text>
+  <text class="s" x="158" y="89" text-anchor="middle">openWakeWord · faster-whisper · Piper</text>
+  <text class="s" x="158" y="104" text-anchor="middle">all audio stays on-device</text>
+
+  <rect class="card" x="300" y="40" width="252" height="72" rx="8"/>
+  <text class="t" x="426" y="70" text-anchor="middle">Browser</text>
+  <text class="s" x="426" y="89" text-anchor="middle">plain HTML/JS · confirmation cards</text>
+  <text class="s" x="426" y="104" text-anchor="middle">no build step</text>
+
+  <rect class="card" x="656" y="40" width="252" height="72" rx="8"/>
+  <text class="t" x="782" y="70" text-anchor="middle">CLI</text>
+  <text class="s" x="782" y="89" text-anchor="middle">same Orchestrator object,</text>
+  <text class="s" x="782" y="104" text-anchor="middle">constructed in-process</text>
+
+  <path class="conn" d="M158,112 L158,144" marker-end="url(#a)"/>
+  <path class="conn" d="M426,112 L426,144" marker-end="url(#a)"/>
+  <path class="conn" d="M782,112 L782,250" marker-end="url(#a)"/>
+  <text class="lab" x="770" y="182" text-anchor="end">no HTTP hop</text>
+
+  <!-- ============ web api ============ -->
+  <rect class="panel" x="32" y="148" width="520" height="58" rx="8"/>
+  <text class="t" x="292" y="173" text-anchor="middle">assistant-web · HTTP API on 127.0.0.1</text>
+  <text class="s" x="292" y="192" text-anchor="middle">/api/chat · /api/pending · /api/decision — one shared decision queue, either surface can answer</text>
+
+  <path class="conn" d="M292,206 L292,250" marker-end="url(#a)"/>
+
+  <!-- ============ orchestrator ============ -->
+  <rect class="orc" x="32" y="254" width="876" height="94" rx="9"/>
+  <text class="cap" x="470" y="282" text-anchor="middle" fill="var(--accent)">ORCHESTRATOR — PYTHON</text>
+  <text class="t" x="470" y="309" text-anchor="middle">the single enforcement point · hand-controlled tool-calling loop · confirmation gate</text>
+  <text class="s" x="470" y="331" text-anchor="middle">Anthropic Claude API · holds the Ed25519 private key · mints permission slips tiered by risk, and never verifies them</text>
+
+  <path class="conn" d="M175,348 L175,420" marker-end="url(#a)"/>
+  <text class="lab" x="186" y="372">direct — no wrapper, no token</text>
+
+  <path class="conn" d="M498,348 L498,420" marker-end="url(#a)"/>
+  <path class="conn" d="M766,348 L766,420" marker-end="url(#a)"/>
+  <text class="lab" x="632" y="374" text-anchor="middle">HTTP + signed token — the only way in</text>
+
+  <!-- ============ postgres column ============ -->
+  <rect class="panel" x="32" y="390" width="286" height="266" rx="9"/>
+  <text class="cap" x="48" y="411" fill="var(--muted)">POSTGRES · 5433</text>
+
+  <rect class="card" x="48" y="420" width="254" height="84" rx="7"/>
+  <text class="t" x="175" y="446" text-anchor="middle">Memory</text>
+  <text class="s" x="175" y="465" text-anchor="middle">pgvector · RLS enforced at the</text>
+  <text class="s" x="175" y="480" text-anchor="middle">DB role level (non-superuser)</text>
+  <text class="s" x="175" y="495" text-anchor="middle">direct integration, not an MCP tool</text>
+
+  <rect class="card" x="48" y="516" width="254" height="62" rx="7"/>
+  <text class="t" x="175" y="542" text-anchor="middle">Audit log</text>
+  <text class="s" x="175" y="561" text-anchor="middle">every call + what triggered it</text>
+
+  <rect class="card" x="48" y="592" width="254" height="48" rx="7"/>
+  <text class="t" x="175" y="613" text-anchor="middle">jti ledger</text>
+  <text class="s" x="175" y="631" text-anchor="middle">single-use — consumed by the proxy</text>
+
+  <!-- ============ trust boundary ============ -->
+  <rect class="bound-box" x="344" y="390" width="564" height="266" rx="10"/>
+  <text class="cap" x="892" y="411" text-anchor="end" fill="var(--bound)">TRUST BOUNDARY</text>
+
+  <rect class="hi" x="372" y="420" width="252" height="84" rx="7"/>
+  <text class="t" x="498" y="446" text-anchor="middle">Verifying proxy</text>
+  <text class="s" x="498" y="465" text-anchor="middle">127.0.0.1:8102 · high tier</text>
+  <text class="s" x="498" y="480" text-anchor="middle">confirms args, expiry, tool binding</text>
+  <text class="s" x="498" y="495" text-anchor="middle">public key only — cannot mint</text>
+
+  <rect class="lo" x="640" y="420" width="252" height="84" rx="7"/>
+  <text class="t" x="766" y="446" text-anchor="middle">Verifying proxy</text>
+  <text class="s" x="766" y="465" text-anchor="middle">127.0.0.1:8101 · low tier</text>
+  <text class="s" x="766" y="480" text-anchor="middle">separate process, separate key copy</text>
+  <text class="s" x="766" y="495" text-anchor="middle">public key only — cannot mint</text>
+
+  <path class="conn" d="M498,504 L498,550" marker-end="url(#a)"/>
+  <path class="conn" d="M766,504 L766,550" marker-end="url(#a)"/>
+  <text class="lab" x="508" y="532">stdio</text>
+  <text class="lab" x="776" y="532">stdio</text>
+
+  <rect class="card" x="372" y="554" width="252" height="82" rx="7"/>
+  <text class="t" x="498" y="580" text-anchor="middle">MCP · files</text>
+  <text class="s" x="498" y="599" text-anchor="middle">destructive · sandboxed to a root dir</text>
+  <text class="s" x="498" y="614" text-anchor="middle">spawned and owned by its proxy</text>
+  <text class="s" x="498" y="629" text-anchor="middle">explicit env allowlist</text>
+
+  <rect class="card" x="640" y="554" width="252" height="82" rx="7"/>
+  <text class="t" x="766" y="580" text-anchor="middle">MCP · notes</text>
+  <text class="s" x="766" y="599" text-anchor="middle">read-only</text>
+  <text class="s" x="766" y="614" text-anchor="middle">spawned and owned by its proxy</text>
+  <text class="s" x="766" y="629" text-anchor="middle">explicit env allowlist</text>
+
+  <!-- high-tier proxy consumes the jti in the DB -->
+  <path class="conn-d" d="M372,470 L337,470 L337,616 L306,616" marker-end="url(#a)"/>
+  <text class="lab" x="326" y="556" text-anchor="middle" transform="rotate(-90 326 556)">consumes jti</text>
+
+  <!-- ============ claims ============ -->
+  <text class="num"    x="32"  y="694">1</text>
+  <text class="foot-t" x="46"  y="694">The proxy is a chokepoint, not a checkbox.</text>
+  <text class="foot"   x="32"  y="714">One proxy per tool, each its own process: the orchestrator reaches a tool only over HTTP to that tool's wrapper, and the wrapper spawns the MCP</text>
+  <text class="foot"   x="32"  y="731">server as a child and holds the only session to it. Each boundary enforces its own configured tier, so a low-tier token is refused at the high-tier one.</text>
+
+  <text class="num"    x="32"  y="761">2</text>
+  <text class="foot-t" x="46"  y="761">Mint / verify asymmetry.</text>
+  <text class="foot"   x="32"  y="781">The orchestrator holds the private key and never verifies what it mints. Each proxy holds only the public key, and burns the jti in the database itself.</text>
+</svg>
