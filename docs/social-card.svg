@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640" role="img" aria-label="ai-assistant-demo — the gate comes first. A security-first personal AI assistant: the orchestrator mints single-use Ed25519 tokens but never verifies them; each tool sits behind a verifying proxy that holds only the public key and cannot mint.">
+  <style>
+    :root {
+      --bg: #ffffff; --ink: #0f172a; --muted: #5b6473; --line: #94a3b8;
+      --card: #ffffff; --edge: #cbd5e1; --panel: #f1f5f9;
+      --accent: #1d4ed8; --accent-soft: #eff6ff;
+      --high: #b45309; --high-soft: #fffbeb; --low: #0f766e; --low-soft: #f0fdfa;
+      --bound: #be123c;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0d1117; --ink: #e6edf3; --muted: #9aa7b6; --line: #6b7787;
+        --card: #161b22; --edge: #30363d; --panel: #11161d;
+        --accent: #6ea8fe; --accent-soft: #16202f;
+        --high: #e0a458; --high-soft: #211a10; --low: #4dd4ac; --low-soft: #10201c;
+        --bound: #f47d92;
+      }
+    }
+    .bg { fill: var(--bg); }
+    text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .k { font-size: 15px; font-weight: 700; letter-spacing: 0.14em; fill: var(--muted); }
+    .h1 { font-size: 46px; font-weight: 750; fill: var(--ink); }
+    .sub { font-size: 18px; fill: var(--muted); }
+    .callout { font-size: 18.5px; font-weight: 650; fill: var(--ink); }
+    .tags { font-size: 15.5px; font-weight: 600; fill: var(--muted); }
+    .bt { font-size: 17px; font-weight: 650; fill: var(--ink); }
+    .bs { font-size: 12.5px; fill: var(--muted); }
+    .conn { stroke: var(--line); stroke-width: 1.7; fill: none; }
+    .card { fill: var(--card); stroke: var(--edge); stroke-width: 1.25; }
+    .orc { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.9; }
+    .rose { fill: var(--card); stroke: var(--bound); stroke-width: 1.9; }
+    .lab { font-size: 11.5px; fill: var(--muted); }
+  </style>
+
+  <rect class="bg" x="0" y="0" width="1280" height="640"/>
+  <rect x="0" y="0" width="9" height="640" fill="var(--accent)"/>
+
+  <!-- ===== left: text ===== -->
+  <text class="k" x="64" y="102">AI-ASSISTANT-DEMO · PYTHON</text>
+  <text class="h1" x="63" y="168">The gate comes first.</text>
+  <rect x="64" y="190" width="76" height="4" rx="2" fill="var(--accent)"/>
+
+  <text class="sub" x="64" y="242">A personal, Jarvis-style AI assistant built security-first — the</text>
+  <text class="sub" x="64" y="268">permission gate, token broker, and audit log exist before</text>
+  <text class="sub" x="64" y="294">anything they could fail to protect.</text>
+
+  <rect x="64" y="356" width="13" height="13" rx="2.5" fill="var(--high)"/>
+  <text class="callout" x="88" y="367">Destructive calls need confirmation, then a single-use,</text>
+  <text class="callout" x="88" y="393">argument-bound Ed25519 token that expires in seconds.</text>
+
+  <text class="tags" x="64" y="556">Python · MCP · Ed25519 JWT · pgvector + RLS · voice + web UI</text>
+
+  <!-- ===== right: mini spine ===== -->
+  <rect class="card" x="852" y="112" width="332" height="64" rx="9"/>
+  <text class="bt" x="1018" y="140" text-anchor="middle">Clients</text>
+  <text class="bs" x="1018" y="159" text-anchor="middle">voice · web · CLI</text>
+
+  <path class="conn" d="M1018,176 L1018,210" marker-end="url(#a)"/>
+
+  <rect class="orc" x="852" y="210" width="332" height="76" rx="9"/>
+  <text class="bt" x="1018" y="240" text-anchor="middle">Orchestrator</text>
+  <text class="bs" x="1018" y="260" text-anchor="middle">mints permission slips · never verifies them</text>
+
+  <path class="conn" d="M1018,286 L1018,320" marker-end="url(#a)"/>
+  <text class="lab" x="1030" y="307">signed token</text>
+
+  <rect class="rose" x="852" y="320" width="332" height="76" rx="9"/>
+  <text class="bt" x="1018" y="350" text-anchor="middle">Verifying proxy</text>
+  <text class="bs" x="1018" y="370" text-anchor="middle">holds the public key only · cannot mint</text>
+
+  <path class="conn" d="M1018,396 L1018,430" marker-end="url(#a)"/>
+
+  <rect class="card" x="852" y="430" width="332" height="64" rx="9"/>
+  <text class="bt" x="1018" y="458" text-anchor="middle">MCP tools</text>
+  <text class="bs" x="1018" y="477" text-anchor="middle">notes (read-only) · files (destructive)</text>
+
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--line)"/>
+    </marker>
+  </defs>
+</svg>
