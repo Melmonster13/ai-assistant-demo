@@ -6,9 +6,13 @@ All DB connections are expected to be autocommit.
 
 import hashlib
 import json
+import logging
+from contextlib import nullcontext
 from typing import Any
 
 import jwt
+
+logger = logging.getLogger(__name__)
 
 
 class TokenRejected(Exception):
@@ -32,6 +36,7 @@ def verify_token(
     public_key: str,
     conn: Any,
     tier: str,
+    db_lock: Any = None,
 ) -> dict[str, Any]:
     """Return the verified claims, or raise TokenRejected.
 
@@ -40,6 +45,18 @@ def verify_token(
     (jti consumed atomically, so one token can never authorize two executions)
     no matter what the orchestrator minted. Low tier still requires a valid
     signed, unexpired, tool-bound token, but allows multi-use within its TTL.
+
+    `db_lock` (optional) serializes the jti-consuming UPDATE across request
+    threads. Correctness for single-use rests on Postgres row-locking; the lock
+    only makes that guarantee independent of the shared connection's threading
+    semantics under a threaded server.
+
+    Low-tier revocation trade-off: low-tier verification is deliberately
+    DB-free — it never touches the jti table, so a leaked low-tier token stays
+    valid until `exp` with no way to kill it early. This is the read-cheap side
+    of the tier split (see JIT tiering rationale); the blast radius of a leak is
+    read-only tool access bounded by JWT_LOW_TIER_TTL_SECONDS. Killing a
+    low-tier token early would require a per-call DB lookup on every read.
     """
     try:
         claims = jwt.decode(
@@ -51,7 +68,9 @@ def verify_token(
     except jwt.ExpiredSignatureError:
         raise TokenRejected("token expired") from None
     except jwt.InvalidTokenError as exc:
-        raise TokenRejected(f"invalid token: {exc}") from None
+        # log the PyJWT detail server-side; return a generic reason to the caller
+        logger.warning("token rejected for %s: invalid token: %s", tool_name, exc)
+        raise TokenRejected("invalid token") from None
 
     if claims.get("tier") != tier:
         raise TokenRejected(f"token tier does not match this tool boundary (expected {tier})")
@@ -61,7 +80,7 @@ def verify_token(
     if tier == "high":
         if claims.get("arguments_hash") != hash_arguments(arguments):
             raise TokenRejected("arguments differ from what was confirmed")
-        with conn.cursor() as cur:
+        with (db_lock or nullcontext()), conn.cursor() as cur:
             cur.execute(
                 "UPDATE jti SET used_at = now() WHERE jti = %s AND used_at IS NULL",
                 (claims["jti"],),

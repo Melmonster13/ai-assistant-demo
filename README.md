@@ -56,9 +56,11 @@ Requires [uv](https://docs.astral.sh/uv/) and Docker.
 ```sh
 uv sync                                  # add --extra local-embeddings for the local embedding model
 uv run python scripts/generate_keys.py   # dev Ed25519 keypair → keys/ (gitignored)
+cp .env.example .env                     # then set ANTHROPIC_API_KEY and ASSISTANT_APP_PASSWORD
 docker compose up -d                     # Postgres on host port 5433, schema auto-applied
-cp .env.example .env                     # then add your ANTHROPIC_API_KEY
 ```
+
+Set `ASSISTANT_APP_PASSWORD` in `.env` before `docker compose up` — Postgres init uses it to create the `assistant_app` role and refuses to start without it. Use the same value in `MEMORY_DATABASE_URL`.
 
 The default `EMBEDDING_BACKEND=local` needs the `local-embeddings` extra; set it to `hashing` to run without extra dependencies.
 

@@ -13,7 +13,8 @@ Run: `tool-wrapper <server_id>` with server_id from servers.toml.
 
 import json
 import sys
-from http.server import BaseHTTPRequestHandler, HTTPServer
+import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
 import psycopg
@@ -22,9 +23,15 @@ from toolwrapper.bridge import McpBridge
 from toolwrapper.config import load_config
 from toolwrapper.verify import TokenRejected, verify_token
 
+# Content-Length is client-controlled; cap it so a declared-huge body can't force
+# the wrapper to allocate/read arbitrary memory. 1 MB is generous for the
+# {tool_name, arguments, token} payload shape.
+MAX_BODY_BYTES = 1024 * 1024
 
-class WrapperServer(HTTPServer):
+
+class WrapperServer(ThreadingHTTPServer):
     allow_reuse_address = True
+    daemon_threads = True
 
     def __init__(self, port: int, public_key: str, conn: Any, *, tier: str, bridge: McpBridge) -> None:
         super().__init__(("127.0.0.1", port), Handler)
@@ -33,6 +40,11 @@ class WrapperServer(HTTPServer):
         self.tier = tier
         self.bridge = bridge
         self.executions: list[dict[str, Any]] = []
+        # Serialize the jti-consuming UPDATE across request threads. Postgres
+        # row-locking already makes single-use atomic, but this makes the
+        # guarantee explicit and independent of psycopg's shared-connection
+        # threading semantics. Held only around the DB op, never the tool call.
+        self.db_lock = threading.Lock()
 
     @property
     def port(self) -> int:
@@ -52,8 +64,21 @@ class Handler(BaseHTTPRequestHandler):
         if self.path != "/execute":
             self._respond(404, {"status": "error", "reason": "not found"})
             return
+
+        raw_length = self.headers.get("Content-Length")
         try:
-            length = int(self.headers.get("Content-Length", 0))
+            length = int(raw_length) if raw_length is not None else 0
+        except ValueError:
+            self._respond(400, {"status": "error", "reason": "invalid Content-Length"})
+            return
+        if length < 0:
+            self._respond(400, {"status": "error", "reason": "invalid Content-Length"})
+            return
+        if length > MAX_BODY_BYTES:
+            # reject before reading — never allocate for a client-declared size
+            self._respond(413, {"status": "error", "reason": "request body too large"})
+            return
+        try:
             body = json.loads(self.rfile.read(length))
         except (ValueError, json.JSONDecodeError):
             self._respond(400, {"status": "error", "reason": "invalid JSON body"})
@@ -73,6 +98,7 @@ class Handler(BaseHTTPRequestHandler):
                 public_key=self.server.public_key,
                 conn=self.server.conn,
                 tier=self.server.tier,
+                db_lock=self.server.db_lock,
             )
         except TokenRejected as exc:
             self._respond(403, {"status": "rejected", "reason": exc.reason})

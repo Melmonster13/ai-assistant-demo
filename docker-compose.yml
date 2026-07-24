@@ -6,6 +6,9 @@ services:
       POSTGRES_USER: assistant
       POSTGRES_PASSWORD: assistant
       POSTGRES_DB: assistant
+      # consumed by db/init/03_memory.sh to create the assistant_app role; compose
+      # fails loudly if it is unset (set it in .env before `docker compose up`)
+      ASSISTANT_APP_PASSWORD: ${ASSISTANT_APP_PASSWORD:?set ASSISTANT_APP_PASSWORD in .env}
     ports:
       # host 5433: a local Postgres already occupies 127.0.0.1:5432
       - "5433:5432"
