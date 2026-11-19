@@ -1,25 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640" role="img" aria-label="ai-assistant-demo — the gate comes first. A security-first personal AI assistant: the orchestrator mints single-use Ed25519 tokens but never verifies them; each tool sits behind a verifying proxy that holds only the public key and cannot mint.">
   <style>
+    /* Palette from Melmonster13/synthwave-theme, shared with architecture.svg.
+       This one is a standalone card rendered on someone else's chrome, so it
+       takes the theme's page background rather than its panel colour, plus the
+       same top glow and sunset-gradient title the site uses.
+
+       Deliberately not prefers-color-scheme aware: a social preview is
+       rasterised by the sharing platform, which has no viewer preference to
+       honour and would fall back to the light palette. */
     :root {
-      --bg: #ffffff; --ink: #0f172a; --muted: #5b6473; --line: #94a3b8;
-      --card: #ffffff; --edge: #cbd5e1; --panel: #f1f5f9;
-      --accent: #1d4ed8; --accent-soft: #eff6ff;
-      --high: #b45309; --high-soft: #fffbeb; --low: #0f766e; --low-soft: #f0fdfa;
-      --bound: #be123c;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #0d1117; --ink: #e6edf3; --muted: #9aa7b6; --line: #6b7787;
-        --card: #161b22; --edge: #30363d; --panel: #11161d;
-        --accent: #6ea8fe; --accent-soft: #16202f;
-        --high: #e0a458; --high-soft: #211a10; --low: #4dd4ac; --low-soft: #10201c;
-        --bound: #f47d92;
-      }
+      --bg: #140a2e; --ink: #ece6ff; --muted: #b9acdf; --line: #8273b5;
+      --card: #1c1140; --edge: #3d2b78; --panel: #22164d;
+      --accent: #9b5cff; --accent-soft: #251548;
+      --high: #ff2e88; --high-soft: #330f26; --low: #00a5c4; --low-soft: #0b2b33;
+      --bound: #ff9a3c;
     }
     .bg { fill: var(--bg); }
     text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
     .k { font-size: 15px; font-weight: 700; letter-spacing: 0.14em; fill: var(--muted); }
-    .h1 { font-size: 46px; font-weight: 750; fill: var(--ink); }
+    .h1 { font-size: 46px; font-weight: 750; fill: url(#sunset); }
     .sub { font-size: 18px; fill: var(--muted); }
     .callout { font-size: 18.5px; font-weight: 650; fill: var(--ink); }
     .tags { font-size: 15.5px; font-weight: 600; fill: var(--muted); }
@@ -33,7 +32,8 @@
   </style>
 
   <rect class="bg" x="0" y="0" width="1280" height="640"/>
-  <rect x="0" y="0" width="9" height="640" fill="var(--accent)"/>
+  <rect x="0" y="0" width="1280" height="640" fill="url(#glow)"/>
+  <rect x="0" y="0" width="9" height="640" fill="url(#edge-bar)"/>
 
   <!-- ===== left: text ===== -->
   <text class="k" x="64" y="102">AI-ASSISTANT-DEMO · PYTHON</text>
@@ -75,6 +75,25 @@
   <text class="bs" x="1018" y="477" text-anchor="middle">notes (read-only) · files (destructive)</text>
 
   <defs>
+    <!-- The site's top glow: radial-gradient(ellipse 80% 40% at 50% -10%). -->
+    <radialGradient id="glow" gradientUnits="userSpaceOnUse" cx="640" cy="-64" r="1024"
+                    gradientTransform="translate(640,-64) scale(1,0.25) translate(-640,64)">
+      <stop offset="0" stop-color="#2a0f4f"/>
+      <stop offset="0.7" stop-color="#2a0f4f" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- The brand bar's sunset gradient: orange, pink, violet. -->
+    <linearGradient id="sunset" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ff9a3c"/>
+      <stop offset="0.5" stop-color="#ff2e88"/>
+      <stop offset="1" stop-color="#9b5cff"/>
+    </linearGradient>
+    <linearGradient id="edge-bar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff9a3c"/>
+      <stop offset="0.5" stop-color="#ff2e88"/>
+      <stop offset="1" stop-color="#9b5cff"/>
+    </linearGradient>
+
     <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="var(--line)"/>
     </marker>
