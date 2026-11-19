@@ -1,25 +1,29 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 800" width="940" height="800" role="img" aria-label="Architecture: clients terminate at a single orchestrator, which mints Ed25519 permission slips and reaches tools only through per-tool verifying proxies inside a trust boundary.">
   <style>
-    /* Fixed dark palette, deliberately not prefers-color-scheme aware. This
-       file is embedded both in the README and in the Pages site, which is
-       always dark. A media query here resolves against the viewer's OS rather
-       than the surrounding page, so a light-mode visitor to the site got a
-       white panel on a dark background. */
+    /* Palette from Melmonster13/synthwave-theme, matching the result charts in
+       ml-experiment2: --bg is the theme's panel colour, so the diagram reads as
+       a panel on the page rather than a foreign slab. Cyan is deepened from the
+       theme's #00e5ff to stay readable on that panel, the same adjustment
+       scripts/plot.py makes.
+
+       Deliberately not prefers-color-scheme aware: this file is embedded both
+       in the README and in the always-dark Pages site, and a media query here
+       resolves against the viewer's OS rather than the surrounding page. */
     :root {
-      --bg: #0d1117;
-      --ink: #e6edf3;
-      --muted: #9aa7b6;
-      --line: #6b7787;
-      --card: #161b22;
-      --edge: #30363d;
-      --panel: #11161d;
-      --accent: #6ea8fe;
-      --accent-soft: #16202f;
-      --high: #e0a458;
-      --high-soft: #211a10;
-      --low: #4dd4ac;
-      --low-soft: #10201c;
-      --bound: #f47d92;
+      --bg: #1c1140;
+      --ink: #ece6ff;
+      --muted: #b9acdf;
+      --line: #8273b5;
+      --card: #22164d;
+      --edge: #3d2b78;
+      --panel: #140a2e;
+      --accent: #9b5cff;
+      --accent-soft: #251548;
+      --high: #ff2e88;
+      --high-soft: #330f26;
+      --low: #00a5c4;
+      --low-soft: #0b2b33;
+      --bound: #ff9a3c;
     }
     .bg { fill: var(--bg); }
     text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
