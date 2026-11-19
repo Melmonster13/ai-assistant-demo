@@ -1,0 +1,20 @@
+title: LLM Assistant with Governed Tool-Calling
+
+remote_theme: Melmonster13/synthwave-theme@v1.0.0
+plugins:
+  - jekyll-remote-theme
+
+# Pages builds from the repo root and renders README.md as the index, so keep
+# docs/ (README links docs/architecture.svg) and leave the source tree out of
+# the published site.
+exclude:
+  - CLAUDE.md
+  - requirements.md
+  - db/
+  - docker-compose.yml
+  - pyproject.toml
+  - scripts/
+  - servers.toml
+  - src/
+  - tests/
+  - uv.lock
